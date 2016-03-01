@@ -15,9 +15,9 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <tar.h>
+#include "tar.h"
 
-#include <libtar_listhash.h>
+#include "libtar_listhash.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -26,6 +26,7 @@ extern "C"
 
 
 /* useful constants */
+/* see FIXME note in block.c regarding T_BLOCKSIZE */
 #define T_BLOCKSIZE		512
 #define T_NAMELEN		100
 #define T_PREFIXLEN		155
@@ -37,9 +38,6 @@ extern "C"
 
 /* extended metadata for next file - used to store selinux_context */
 #define TH_EXT_TYPE		'x'
-
-/* extended mode flags (bits 16 to 21 available) */
-#define TH_MODE_COMPRESSED      04000000
 
 /* our version of the tar header structure */
 struct tar_header
@@ -94,6 +92,9 @@ typedef struct
 	int options;
 	struct tar_header th_buf;
 	libtar_hash_t *h;
+
+	/* introduced in libtar 1.2.21 */
+	char *th_pathname;
 }
 TAR;
 
@@ -159,7 +160,7 @@ int tar_append_regfile(TAR *t, const char *realname);
  *    uid, gid = owner
  *    buf, len = in-memory buffer
  */
-int tar_append_file_contents(TAR *t, const char *savename, unsigned int mode,
+int tar_append_file_contents(TAR *t, const char *savename, mode_t mode,
                              uid_t uid, gid_t gid, void *buf, size_t len);
 
 /* add buffer to a tarchive */
@@ -214,7 +215,7 @@ int th_write(TAR *t);
                             ? (t)->th_buf.gnu_longlink \
                             : (t)->th_buf.linkname)
 char *th_get_pathname(TAR *t);
-unsigned int th_get_mode(TAR *t);
+mode_t th_get_mode(TAR *t);
 uid_t th_get_uid(TAR *t);
 gid_t th_get_gid(TAR *t);
 
@@ -228,7 +229,7 @@ void th_set_link(TAR *t, const char *linkname);
 void th_set_device(TAR *t, dev_t device);
 void th_set_user(TAR *t, uid_t uid);
 void th_set_group(TAR *t, gid_t gid);
-void th_set_mode(TAR *t, unsigned int fmode);
+void th_set_mode(TAR *t, mode_t fmode);
 #define th_set_mtime(t, fmtime) \
 	int_to_oct_ex((fmtime), (t)->th_buf.mtime, sizeof((t)->th_buf.mtime))
 #define th_set_size(t, fsize) \
@@ -244,11 +245,11 @@ void th_finish(TAR *t);
 /***** extract.c ***********************************************************/
 
 /* sequentially extract next file from t */
-int tar_extract_file(TAR *t, const char *realname, const int *progress_fd);
+int tar_extract_file(TAR *t, const char *realname, const char *prefix, const int *progress_fd);
 
 /* extract different file types */
 int tar_extract_dir(TAR *t, const char *realname);
-int tar_extract_hardlink(TAR *t, const char *realname);
+int tar_extract_hardlink(TAR *t, const char *realname, const char *prefix);
 int tar_extract_symlink(TAR *t, const char *realname);
 int tar_extract_chardev(TAR *t, const char *realname);
 int tar_extract_blockdev(TAR *t, const char *realname);
@@ -292,7 +293,12 @@ int mkdirhier(char *path);
 
 /* calculate header checksum */
 int th_crc_calc(TAR *t);
-#define th_crc_ok(t) (th_get_crc(t) == th_crc_calc(t))
+
+/* calculate a signed header checksum */
+int th_signed_crc_calc(TAR *t);
+
+/* compare checksums in a forgiving way */
+#define th_crc_ok(t) (th_get_crc(t) == th_crc_calc(t) || th_get_crc(t) == th_signed_crc_calc(t))
 
 /* string-octal to integer conversion */
 int64_t oct_to_int(char *oct, size_t len);
