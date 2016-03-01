@@ -1,3 +1,95 @@
+	NOTE:
+	All releases below marked (Chris Frey) are maintenance releases
+	done by Chris Frey, temporarily stepping in for Mark Roth.
+	These releases are git-based only and can be found at:
+		http://repo.or.cz/w/libtar.git
+
+	Both git downloads and tarball downloads are possible at this site.
+
+
+libtar 1.2.20 - 2013/10/09 (Chris Frey)
+-------------
+      Added extern "C" protectors to listhash.h
+      Added autoconf checks for __thread compiler support
+      Fixed size_t overflow bug, as reported by Timo Warns
+      Fixed thread-safe bug in th_get_pathname() (Sergey Zhitomirsky)
+
+
+libtar 1.2.19 - 2012/12/11 (Chris Frey)
+-------------
+      Removed varargs.h and all dependencies, to avoid user compile errors
+
+      Fixed some short int / int compiler warnings in va_arg() usage
+
+      Fixed some gcc built-in compiler warnings
+
+      Changed autoconf support code from AC_RUN_ to AC_COMPILE_ to fix
+      issues reported during cross-compiling.
+
+      Applied most of Jan Cermak's const char* function argument patch.
+
+
+libtar 1.2.18 - 2012/08/02 (Chris Frey)
+-------------
+      Added more forgiving CRC checking logic when reading tar files
+
+      Note: If your application uses the macro th_crc_ok(), then to gain full
+      advantage of the changes in this version, you will need to recompile
+      your application against the new headers.  Otherwise, the library is
+      drop-in replaceable, as usual.
+
+
+libtar 1.2.17 - 2012/07/24 (Chris Frey)
+-------------
+      Applied Tim Band's checksum patch from mailing list (thanks!)
+
+
+libtar 1.2.16 - 2012/05/17 (Chris Frey)
+-------------
+      Fixed build system to allow for out-of-source tree builds
+
+
+libtar 1.2.15 - 2012/05/10 (Chris Frey)
+-------------
+Chris Frey (1):
+      Fixed harmless buffer overflow which is caught by FORTIFY on some systems
+
+
+libtar 1.2.14 - 2011/12/22 (Chris Frey)
+-------------
+Chris Frey (1):
+      Fixed truncation check, so 100 char names get GNU extension support when enabled
+
+
+libtar 1.2.13 - 2011/06/13 (Chris Frey)
+-------------
+Chris Frey (10):
+      Fixed incorrect URL in readme
+      Added autoconf/ as macro dir
+      Added autogen.sh script to build a fresh configure
+      Renamed autoconf/aclocal.m4 to psg.m4 so aclocal isn't so confused
+      Removed m4 includes, and straightened out [] m4 quoting for modern autoconfs
+      Removed auto-generated files
+      Added datarootdir to Makefile.in's
+      Fixed header warnings
+      Applied Marcin Gibula's patch fixing tar_extract_glob()
+      Changed root Makefile.in to Makefile.am, which make autoreconf workable
+
+Glenn McGrath (1):
+      Use libtool to build dynamic library
+
+James Morrison (1):
+      Document stupidity of tartype_t in libtar.c.
+
+Magnus Holmgren (1):
+      Escape hyphens that should be minus signs in man pages.
+
+Per Lidén (2):
+      Fix memory leak in th_get_pathname
+      Reduce memory used by libtar when extracting files.
+
+------------------------------------------------------------------------------
+
 libtar 1.2.11 - 3/2/03
 -------------
 
