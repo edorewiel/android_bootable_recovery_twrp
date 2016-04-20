@@ -157,9 +157,6 @@ bool TWPartition::Process_Fstab_Line(string Line, bool Display_Error) {
 	}
 	Primary_Block_Device = full_line;
 	LOGINFO("Processing '%s'\n", Primary_Block_Device.c_str());
-	Display_Name = full_line + 1;
-	Backup_Display_Name = Display_Name;
-	Storage_Name = Display_Name;
 	index = Primary_Block_Device.size();
 	while (index < line_len) {
 		while (index < line_len && full_line[index] == '\0')
@@ -171,6 +168,9 @@ bool TWPartition::Process_Fstab_Line(string Line, bool Display_Error) {
 			Mount_Point = ptr;
 			Backup_Path = Mount_Point;
 			Storage_Path = Mount_Point;
+			Display_Name = ptr + 1;
+			Backup_Display_Name = Display_Name;
+			Storage_Name = Display_Name;
 			item_index++;
 		} else if (item_index == 1) { // Filesystem
 			Fstab_File_System = ptr;
@@ -473,7 +473,7 @@ bool TWPartition::Process_Flags(string Flags, bool Display_Error) {
 			if (ptr_len == 7) {
 				Is_Storage = true;
 			} else if (ptr_len == 9) {
-				ptr += 9;
+				ptr += 8;
 				if (*ptr == '1' || *ptr == 'y' || *ptr == 'Y') {
 					LOGINFO("storage set to true\n");
 					Is_Storage = true;
@@ -553,19 +553,24 @@ bool TWPartition::Process_Flags(string Flags, bool Display_Error) {
 				Can_Encrypt_Backup = true;
 			else
 				Can_Encrypt_Backup = false;
-		} else if (ptr_len > 21 && strncmp(ptr, "userdataencryptbackup=", 21) == 0) {
-			ptr += 21;
+		} else if (ptr_len > 22 && strncmp(ptr, "userdataencryptbackup=", 22) == 0) {
+			ptr += 22;
 			if (*ptr == '1' || *ptr == 'y' || *ptr == 'Y') {
 				Can_Encrypt_Backup = true;
 				Use_Userdata_Encryption = true;
 			} else {
 				Use_Userdata_Encryption = false;
 			}
-		} else if ((ptr_len > 12 && strncmp(ptr, "encryptable=", 12) == 0) || (ptr_len > 13 && strncmp(ptr, "forceencrypt=", 13) == 0)) {
+		} else if (ptr_len > 12 && strncmp(ptr, "encryptable=", 12) == 0) {
 			ptr += 12;
-			if (*ptr == '=') ptr++;
 			if (*ptr == '\"') ptr++;
-
+			Crypto_Key_Location = ptr;
+			if (Crypto_Key_Location.substr(Crypto_Key_Location.size() - 1, 1) == "\"") {
+				Crypto_Key_Location.resize(Crypto_Key_Location.size() - 1);
+			}
+		} else if (ptr_len > 13 && strncmp(ptr, "forceencrypt=", 13) == 0) {
+			ptr += 13;
+			if (*ptr == '\"') ptr++;
 			Crypto_Key_Location = ptr;
 			if (Crypto_Key_Location.substr(Crypto_Key_Location.size() - 1, 1) == "\"") {
 				Crypto_Key_Location.resize(Crypto_Key_Location.size() - 1);
